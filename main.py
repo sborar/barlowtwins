@@ -22,7 +22,7 @@ import torchvision
 import torchvision.transforms as transforms
 
 parser = argparse.ArgumentParser(description='Barlow Twins Training')
-parser.add_argument('data', type=Path, metavar='DIR',
+parser.add_argument('--data', type=Path, metavar='DIR',
                     help='path to dataset')
 parser.add_argument('--workers', default=8, type=int, metavar='N',
                     help='number of data loader workers')
