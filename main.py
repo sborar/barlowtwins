@@ -110,6 +110,7 @@ def main_worker(gpu, args):
     else:
         start_epoch = 0
 
+    print(os.listdir('train_dataset/img'))
     dataset = torchvision.datasets.ImageFolder(args.data / 'img', Transform())
     sampler = torch.utils.data.distributed.DistributedSampler(dataset)
     assert args.batch_size % args.world_size == 0
