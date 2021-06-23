@@ -1,5 +1,9 @@
-import torch
 import torch.nn as nn
+
+
+def conv1x1(in_planes, out_planes, stride=1):
+    """1x1 convolution"""
+    return nn.Conv2d(in_planes, out_planes, kernel_size=1, stride=stride, bias=False)
 
 
 class ResAxialAttentionUNet(nn.Module):
@@ -107,7 +111,8 @@ class AxialBlock(nn.Module):
         self.conv_down = conv1x1(inplanes, width)
         self.bn1 = norm_layer(width)
         self.hight_block = AxialAttention(width, width, groups=groups, kernel_size=kernel_size)
-        self.width_block = AxialAttention(width, width, groups=groups, kernel_size=kernel_size, stride=stride, width=True)
+        self.width_block = AxialAttention(width, width, groups=groups, kernel_size=kernel_size, stride=stride,
+                                          width=True)
         self.conv_up = conv1x1(width, planes * self.expansion)
         self.bn2 = norm_layer(planes * self.expansion)
         self.relu = nn.ReLU(inplace=True)
@@ -136,6 +141,7 @@ class AxialBlock(nn.Module):
 
         return out
 
+
 class AxialBlock_dynamic(nn.Module):
     expansion = 2
 
@@ -149,7 +155,8 @@ class AxialBlock_dynamic(nn.Module):
         self.conv_down = conv1x1(inplanes, width)
         self.bn1 = norm_layer(width)
         self.hight_block = AxialAttention_dynamic(width, width, groups=groups, kernel_size=kernel_size)
-        self.width_block = AxialAttention_dynamic(width, width, groups=groups, kernel_size=kernel_size, stride=stride, width=True)
+        self.width_block = AxialAttention_dynamic(width, width, groups=groups, kernel_size=kernel_size, stride=stride,
+                                                  width=True)
         self.conv_up = conv1x1(width, planes * self.expansion)
         self.bn2 = norm_layer(planes * self.expansion)
         self.relu = nn.ReLU(inplace=True)
