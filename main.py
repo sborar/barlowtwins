@@ -20,7 +20,7 @@ from torch import nn, optim
 import torch
 import torchvision
 import torchvision.transforms as transforms
-from axialnet import ResAxialAttentionUNet
+from axialnet import ResAxialAttentionUNet, AxialBlock
 
 parser = argparse.ArgumentParser(description='Barlow Twins Training')
 parser.add_argument('--data', type=Path, metavar='DIR',
@@ -190,7 +190,7 @@ class BarlowTwins(nn.Module):
     def __init__(self, args):
         super().__init__()
         self.args = args
-        self.backbone = ResAxialAttentionUNet()
+        self.backbone = ResAxialAttentionUNet(AxialBlock, [1, 2, 4, 1], s= 0.125)
         # self.backbone.fc = nn.Identity()
 
         # projector
