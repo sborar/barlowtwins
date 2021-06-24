@@ -65,6 +65,7 @@ def main():
         args.dist_url = f'tcp://{host_name}:58472'
     else:
         # single-node distributed training
+        print('single')
         args.rank = 0
         args.dist_url = 'tcp://localhost:58472'
         args.world_size = args.ngpus_per_node
