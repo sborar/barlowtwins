@@ -207,8 +207,11 @@ class BarlowTwins(nn.Module):
         self.bn = nn.BatchNorm1d(sizes[-1], affine=False)
 
     def forward(self, y1, y2):
-        z1 = self.projector(self.backbone(y1))
-        z2 = self.projector(self.backbone(y2))
+        batch_size = y1.shape[0]
+        b1 = self.backbone(y1)
+        z1 = self.projector(b1.view(batch_size,-1))
+        b2 = self.backbone(y2)
+        z2 = self.projector(b2.view(batch_size,-1))
 
         # empirical cross-correlation matrix
         c = self.bn(z1).T @ self.bn(z2)
