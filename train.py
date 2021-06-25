@@ -71,11 +71,9 @@ def main():
 
     dataset = torchvision.datasets.ImageFolder('train_dataset/img', Transform())
     loader = torch.utils.data.DataLoader(
-        dataset, batch_size=args.batch_size,
-        pin_memory=True)
+        dataset, batch_size=args.batch_size)
 
     start_time = time.time()
-    scaler = torch.cuda.amp.GradScaler()
     for epoch in range(0, args.epochs):
         # sampler.set_epoch(epoch)
         for step, ((y1, y2), _) in enumerate(loader, start=epoch * len(loader)):
@@ -85,9 +83,9 @@ def main():
             optimizer.zero_grad()
             with torch.cuda.amp.autocast():
                 loss = model.forward(y1, y2)
-            scaler.scale(loss).backward()
-            scaler.step(optimizer)
-            scaler.update()
+            loss.backward()
+            optimizer.step()
+            optimizer.zero_grad()
             if step % args.print_freq == 0:
                 if args.rank == 0:
                     stats = dict(epoch=epoch, step=step,
@@ -173,7 +171,7 @@ class BarlowTwins(nn.Module):
 
         # sum the cross-correlation matrix between all gpus
         c.div_(self.args.batch_size)
-        # torch.distributed.all_reduce(c)
+        torch.distributed.all_reduce(c)
 
         on_diag = torch.diagonal(c).add_(-1).pow_(2).sum()
         off_diag = off_diagonal(c).pow_(2).sum()
