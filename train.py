@@ -29,7 +29,7 @@ parser.add_argument('--workers', default=8, type=int, metavar='N',
                     help='number of data loader workers')
 parser.add_argument('--epochs', default=1000, type=int, metavar='N',
                     help='number of total epochs to run')
-parser.add_argument('--batch-size', default=3, type=int, metavar='N',
+parser.add_argument('--batch-size', default=4, type=int, metavar='N',
                     help='mini-batch size')
 parser.add_argument('--learning-rate-weights', default=0.2, type=float, metavar='LR',
                     help='base learning rate for weights')
@@ -84,6 +84,7 @@ def main():
             adjust_learning_rate(args, optimizer, loader, step)
             optimizer.zero_grad()
             with torch.cuda.amp.autocast():
+                print('y',y1)
                 loss = model.forward(y1, y2)
 
             optimizer.zero_grad()
@@ -179,7 +180,7 @@ class BarlowTwins(nn.Module):
         on_diag = torch.diagonal(c).add_(-1).pow_(2).sum()
         off_diag = off_diagonal(c).pow_(2).sum()
         loss = on_diag + self.args.lambd * off_diag
-        print(c,on_diag, off_diag, loss)
+        print('c',c)
         return loss
 
 
