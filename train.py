@@ -74,6 +74,7 @@ def main():
         dataset, batch_size=args.batch_size)
 
     start_time = time.time()
+    scaler = torch.cuda.amp.GradScaler()
     for epoch in range(0, args.epochs):
         print('epoch', epoch)
         # sampler.set_epoch(epoch)
@@ -87,9 +88,9 @@ def main():
                 # print('y',y1)
                 loss = model.forward(y1, y2)
 
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
+            scaler.scale(loss).backward()
+            scaler.step(optimizer)
+            scaler.update()
             if step % args.print_freq == 0:
                 if args.rank == 0:
                     stats = dict(epoch=epoch, step=step,
@@ -181,6 +182,7 @@ class BarlowTwins(nn.Module):
         off_diag = off_diagonal(c).pow_(2).sum()
         loss = on_diag + self.args.lambd * off_diag
         return loss
+
 
 
 class LARS(optim.Optimizer):
