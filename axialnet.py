@@ -160,12 +160,13 @@ class ResAxialAttentionUNet(nn.Module):
 
         # AxialAttention Encoder
         # pdb.set_trace()
+        print('x', x)
         x = self.conv1(x)
         print('x 1 conv',x)
-        x = self.bn1(x)
-        print('bn1',x)
+        # x = self.bn1(x)
+        # print('bn1',x)
         x = self.relu(x)
-        print('relu',x)
+        # print('relu',x)
 
 
         x = self.conv2(x)
