@@ -84,7 +84,7 @@ def main():
             adjust_learning_rate(args, optimizer, loader, step)
             optimizer.zero_grad()
             with torch.cuda.amp.autocast():
-                print('y',y1)
+                # print('y',y1)
                 loss = model.forward(y1, y2)
 
             optimizer.zero_grad()
@@ -180,7 +180,6 @@ class BarlowTwins(nn.Module):
         on_diag = torch.diagonal(c).add_(-1).pow_(2).sum()
         off_diag = off_diagonal(c).pow_(2).sum()
         loss = on_diag + self.args.lambd * off_diag
-        print('c',c)
         return loss
 
 

@@ -171,11 +171,11 @@ class ResAxialAttentionUNet(nn.Module):
         x = self.relu(x)
 
         x1 = self.layer1(x)
-
+        print('x1',x1)
         x2 = self.layer2(x1)
-        # print(x2.shape)
+        print('x2',x2)
         x3 = self.layer3(x2)
-        # print(x3.shape)
+        print('x3',x3)
         x4 = self.layer4(x3)
 
         return x4
