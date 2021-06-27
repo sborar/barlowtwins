@@ -75,8 +75,10 @@ def main():
 
     start_time = time.time()
     for epoch in range(0, args.epochs):
+        print('epoch', epoch)
         # sampler.set_epoch(epoch)
         for step, ((y1, y2), _) in enumerate(loader, start=epoch * len(loader)):
+            print('step', step)
             y1 = y1.to(device)
             y2 = y2.to(device)
             adjust_learning_rate(args, optimizer, loader, step)
