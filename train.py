@@ -29,7 +29,7 @@ parser.add_argument('--workers', default=8, type=int, metavar='N',
                     help='number of data loader workers')
 parser.add_argument('--epochs', default=1000, type=int, metavar='N',
                     help='number of total epochs to run')
-parser.add_argument('--batch-size', default=4, type=int, metavar='N',
+parser.add_argument('--batch-size', default=6, type=int, metavar='N',
                     help='mini-batch size')
 parser.add_argument('--learning-rate-weights', default=0.2, type=float, metavar='LR',
                     help='base learning rate for weights')
@@ -79,6 +79,7 @@ def main():
         print('epoch', epoch)
         # sampler.set_epoch(epoch)
         for step, ((y1, y2), _) in enumerate(loader, start=epoch * len(loader)):
+            optimizer.zero_grad()
             print('step', step)
             y1 = y1.to(device)
             y2 = y2.to(device)
@@ -87,7 +88,7 @@ def main():
                 # print('y',y1)
             loss = model.forward(y1, y2)
 
-            optimizer.zero_grad()
+
             loss.backward()
             optimizer.step()
             if step % args.print_freq == 0:
