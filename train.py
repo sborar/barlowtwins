@@ -83,7 +83,7 @@ def main():
             print('step', step)
             y1 = y1.to(device)
             y2 = y2.to(device)
-            adjust_learning_rate(args, optimizer, loader, step)
+            adjust_learning_rate(args, optimizer, loader, step+1)
             # with torch.cuda.amp.autocast():
                 # print('y',y1)
             loss = model.forward(y1, y2)
@@ -114,7 +114,7 @@ def main():
 def adjust_learning_rate(args, optimizer, loader, step):
     max_steps = args.epochs * len(loader)
     warmup_steps = 10 * len(loader)
-    base_lr = args.batch_size / 256
+    base_lr = 8
     if step < warmup_steps:
         lr = base_lr * step / warmup_steps
     else:
@@ -123,6 +123,7 @@ def adjust_learning_rate(args, optimizer, loader, step):
         q = 0.5 * (1 + math.cos(math.pi * step / max_steps))
         end_lr = base_lr * 0.001
         lr = base_lr * q + end_lr * (1 - q)
+    print('lr', lr)
     optimizer.param_groups[0]['lr'] = lr * args.learning_rate_weights
     optimizer.param_groups[1]['lr'] = lr * args.learning_rate_biases
 
