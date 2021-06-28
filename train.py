@@ -84,9 +84,9 @@ def main():
             y1 = y1.to(device)
             y2 = y2.to(device)
             adjust_learning_rate(args, optimizer, loader, step)
-            with torch.cuda.amp.autocast():
+            # with torch.cuda.amp.autocast():
                 # print('y',y1)
-                loss = model.forward(y1, y2)
+            loss = model.forward(y1, y2)
 
 
             loss.backward()
