@@ -74,7 +74,7 @@ def main():
         dataset, batch_size=args.batch_size)
 
     start_time = time.time()
-    scaler = torch.cuda.amp.GradScaler()
+    # scaler = torch.cuda.amp.GradScaler()
     for epoch in range(0, args.epochs):
         print('epoch', epoch)
         # sampler.set_epoch(epoch)
@@ -83,14 +83,13 @@ def main():
             y1 = y1.to(device)
             y2 = y2.to(device)
             adjust_learning_rate(args, optimizer, loader, step)
-            optimizer.zero_grad()
-            with torch.cuda.amp.autocast():
+            # with torch.cuda.amp.autocast():
                 # print('y',y1)
-                loss = model.forward(y1, y2)
+            loss = model.forward(y1, y2)
 
-            scaler.scale(loss).backward()
-            scaler.step(optimizer)
-            scaler.update()
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
             if step % args.print_freq == 0:
                 if args.rank == 0:
                     stats = dict(epoch=epoch, step=step,
