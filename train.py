@@ -82,6 +82,8 @@ def main():
     # else:
     #     start_epoch = 0
 
+    start_epoch = 0
+
     wandb.watch(model)
 
     dataset = torchvision.datasets.ImageFolder('train_dataset/img', Transform())
