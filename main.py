@@ -21,7 +21,7 @@ import torch
 import torchvision
 import torchvision.transforms as transforms
 from axialnet import ResAxialAttentionUNet, AxialBlock
-import wandb
+# import wandb
 
 parser = argparse.ArgumentParser(description='Barlow Twins Training')
 parser.add_argument('--data', type=Path, metavar='DIR',
@@ -51,9 +51,9 @@ parser.add_argument('--checkpoint-dir', default='./checkpoint/', type=Path,
 
 # parser.add_argument('--learning_rate', default=0.001, type=str)
 
-wandb.login(key='ed94033c9c3bebedd51d8c7e1daf4c6eafe44e09')
-wandb.init(project='distributed-barlow-twins', entity='sborar')
-config = wandb.config
+# wandb.login(key='ed94033c9c3bebedd51d8c7e1daf4c6eafe44e09')
+# wandb.init(project='distributed-barlow-twins', entity='sborar')
+# config = wandb.config
 
 
 
@@ -125,7 +125,7 @@ def main_worker(gpu, args):
 
     start_epoch = 0
 
-    wandb.watch(model)
+    # wandb.watch(model)
     # print(os.listdir(args.data / 'img'))
     dataset = torchvision.datasets.ImageFolder(args.data / 'img', Transform())
     sampler = torch.utils.data.distributed.DistributedSampler(dataset)
@@ -158,7 +158,7 @@ def main_worker(gpu, args):
                                  time=int(time.time() - start_time))
                     print(json.dumps(stats))
                     # print(json.dumps(stats), file=stats_file)
-                    wandb.log({"loss": loss.item()})
+                    # wandb.log({"loss": loss.item()})
         if args.rank == 0:
             # save checkpoint
             state = dict(epoch=epoch + 1, model=model.state_dict(),
