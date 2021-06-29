@@ -21,6 +21,7 @@ import torch
 import torchvision
 import torchvision.transforms as transforms
 from axialnet import ResAxialAttentionUNet, AxialBlock
+import wandb
 
 parser = argparse.ArgumentParser(description='Barlow Twins Training')
 parser.add_argument('--data', type=Path, metavar='DIR',
@@ -48,6 +49,8 @@ parser.add_argument('--checkpoint-dir', default='./checkpoint/', type=Path,
 
 parser.add_argument('--device', default='cuda', type=str)
 
+wandb.init(project='barlow-twins')
+config = wandb.config
 
 def main():
     args = parser.parse_args()
@@ -69,13 +72,24 @@ def main():
                      weight_decay_filter=exclude_bias_and_norm,
                      lars_adaptation_filter=exclude_bias_and_norm)
 
+    if (args.checkpoint_dir / 'checkpoint.pth').is_file():
+        ckpt = torch.load(args.checkpoint_dir / 'checkpoint.pth',
+                          map_location='cpu')
+        start_epoch = ckpt['epoch']
+        model.load_state_dict(ckpt['model'])
+        optimizer.load_state_dict(ckpt['optimizer'])
+    else:
+        start_epoch = 0
+
+    wandb.watch(model)
+
     dataset = torchvision.datasets.ImageFolder('train_dataset/img', Transform())
     loader = torch.utils.data.DataLoader(
         dataset, batch_size=args.batch_size)
 
     start_time = time.time()
     # scaler = torch.cuda.amp.GradScaler()
-    for epoch in range(0, args.epochs):
+    for epoch in range(start_epoch, args.epochs):
         print('epoch', epoch)
         # sampler.set_epoch(epoch)
         for step, ((y1, y2), _) in enumerate(loader, start=epoch * len(loader)):
@@ -88,7 +102,7 @@ def main():
                 # print('y',y1)
             loss = model.forward(y1, y2)
 
-
+            wandb.log({"loss": loss.item()})
             loss.backward()
             optimizer.step()
             if step % args.print_freq == 0:
@@ -124,6 +138,7 @@ def adjust_learning_rate(args, optimizer, loader, step):
         end_lr = base_lr * 0.001
         lr = base_lr * q + end_lr * (1 - q)
     print('lr', lr)
+    config.learning_rate = lr
     optimizer.param_groups[0]['lr'] = lr * args.learning_rate_weights
     optimizer.param_groups[1]['lr'] = lr * args.learning_rate_biases
 
