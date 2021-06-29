@@ -30,7 +30,7 @@ parser.add_argument('--workers', default=8, type=int, metavar='N',
                     help='number of data loader workers')
 parser.add_argument('--epochs', default=1000, type=int, metavar='N',
                     help='number of total epochs to run')
-parser.add_argument('--batch-size', default=8, type=int, metavar='N',
+parser.add_argument('--batch-size', default=2, type=int, metavar='N',
                     help='mini-batch size')
 parser.add_argument('--learning-rate-weights', default=0.2, type=float, metavar='LR',
                     help='base learning rate for weights')
@@ -47,13 +47,15 @@ parser.add_argument('--print-freq', default=100, type=int, metavar='N',
 parser.add_argument('--checkpoint-dir', default='./checkpoint/', type=Path,
                     metavar='DIR', help='path to checkpoint directory')
 
-parser.add_argument('--device', default='cpu', type=str)
+parser.add_argument('--device', default='cuda', type=str)
+
+parser.add_argument('--learning_rate', default=0.001, type=str)
 
 wandb.login(key='ed94033c9c3bebedd51d8c7e1daf4c6eafe44e09')
 wandb.init(project='barlow-twins', entity='sborar')
 config = wandb.config
 args = parser.parse_args()
-config.update(d=args, allow_val_change=True)
+
 
 def main():
 
@@ -71,7 +73,7 @@ def main():
         else:
             param_weights.append(param)
     parameters = [{'params': param_weights}, {'params': param_biases}]
-    optimizer = LARS(parameters, lr=0, weight_decay=args.weight_decay,
+    optimizer = LARS(parameters, lr=0.001, weight_decay=args.weight_decay,
                      weight_decay_filter=exclude_bias_and_norm,
                      lars_adaptation_filter=exclude_bias_and_norm)
 
@@ -102,7 +104,7 @@ def main():
             print('step', step)
             y1 = y1.to(device)
             y2 = y2.to(device)
-            adjust_learning_rate(args, optimizer, loader, step)
+            # adjust_learning_rate(args, optimizer, loader, step)
             # with torch.cuda.amp.autocast():
                 # print('y',y1)
             loss = model.forward(y1, y2)
@@ -143,7 +145,8 @@ def adjust_learning_rate(args, optimizer, loader, step):
         end_lr = base_lr * 0.001
         lr = base_lr * q + end_lr * (1 - q)
     print('lr', lr)
-    config.learning_rate = lr
+    # config.update(d=args, allow_val_change=True)
+    # config.learning_rate = lr
     optimizer.param_groups[0]['lr'] = lr * args.learning_rate_weights
     optimizer.param_groups[1]['lr'] = lr * args.learning_rate_biases
 
