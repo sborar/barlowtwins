@@ -52,11 +52,11 @@ parser.add_argument('--device', default='cpu', type=str)
 wandb.login(key='ed94033c9c3bebedd51d8c7e1daf4c6eafe44e09')
 wandb.init(project='barlow-twins', entity='sborar')
 config = wandb.config
-
-config.update(allow_val_change=True)
+args = parser.parse_args()
+config.update(d=args, allow_val_change=True)
 
 def main():
-    args = parser.parse_args()
+
     args.rank = 0
     device = args.device
 
