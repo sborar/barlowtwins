@@ -117,12 +117,13 @@ def main():
                     stats = dict(epoch=epoch, step=step,
                                  lr_weights=optimizer.param_groups[0]['lr'],
                                  lr_biases=optimizer.param_groups[1]['lr'],
-                                 loss=loss.item(),
+                                 loss=running_loss/args.print_freq,
                                  time=int(time.time() - start_time))
                     print(json.dumps(stats))
+                    wandb.log({"loss": running_loss/args.print_freq})
+                    running_loss = 0
                     # print(json.dumps(stats), file=stats_file)
-        wandb.log({"loss": running_loss/args.batch_size})
-        print('running loss', running_loss)
+
         if args.rank == 0:
             # save checkpoint
             state = dict(epoch=epoch + 1, model=model.state_dict(),
