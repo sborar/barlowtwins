@@ -21,6 +21,7 @@ import torch
 import torchvision
 import torchvision.transforms as transforms
 from axialnet import ResAxialAttentionUNet, AxialBlock
+import wandb
 
 parser = argparse.ArgumentParser(description='Barlow Twins Training')
 parser.add_argument('--data', type=Path, metavar='DIR',
@@ -45,6 +46,15 @@ parser.add_argument('--print-freq', default=100, type=int, metavar='N',
                     help='print frequency')
 parser.add_argument('--checkpoint-dir', default='./checkpoint/', type=Path,
                     metavar='DIR', help='path to checkpoint directory')
+
+# parser.add_argument('--device', default='cpu', type=str)
+
+# parser.add_argument('--learning_rate', default=0.001, type=str)
+
+wandb.login(key='ed94033c9c3bebedd51d8c7e1daf4c6eafe44e09')
+wandb.init(project='distributed-barlow-twins', entity='sborar')
+config = wandb.config
+
 
 
 def main():
@@ -102,16 +112,19 @@ def main_worker(gpu, args):
                      weight_decay_filter=exclude_bias_and_norm,
                      lars_adaptation_filter=exclude_bias_and_norm)
 
-    # automatically resume from checkpoint if it exists
-    if (args.checkpoint_dir / 'checkpoint.pth').is_file():
-        ckpt = torch.load(args.checkpoint_dir / 'checkpoint.pth',
-                          map_location='cpu')
-        start_epoch = ckpt['epoch']
-        model.load_state_dict(ckpt['model'])
-        optimizer.load_state_dict(ckpt['optimizer'])
-    else:
-        start_epoch = 0
+    # # automatically resume from checkpoint if it exists
+    # if (args.checkpoint_dir / 'checkpoint.pth').is_file():
+    #     ckpt = torch.load(args.checkpoint_dir / 'checkpoint.pth',
+    #                       map_location='cpu')
+    #     start_epoch = ckpt['epoch']
+    #     model.load_state_dict(ckpt['model'])
+    #     optimizer.load_state_dict(ckpt['optimizer'])
+    # else:
+    #     start_epoch = 0
 
+    start_epoch = 0
+
+    wandb.watch(model)
     # print(os.listdir(args.data / 'img'))
     dataset = torchvision.datasets.ImageFolder(args.data / 'img', Transform())
     sampler = torch.utils.data.distributed.DistributedSampler(dataset)
@@ -143,7 +156,8 @@ def main_worker(gpu, args):
                                  loss=loss.item(),
                                  time=int(time.time() - start_time))
                     print(json.dumps(stats))
-                    print(json.dumps(stats), file=stats_file)
+                    # print(json.dumps(stats), file=stats_file)
+                    wandb.log({"loss": loss.item()})
         if args.rank == 0:
             # save checkpoint
             state = dict(epoch=epoch + 1, model=model.state_dict(),
@@ -158,7 +172,7 @@ def main_worker(gpu, args):
 def adjust_learning_rate(args, optimizer, loader, step):
     max_steps = args.epochs * len(loader)
     warmup_steps = 10 * len(loader)
-    base_lr = args.batch_size / 256
+    base_lr = 8
     if step < warmup_steps:
         lr = base_lr * step / warmup_steps
     else:
