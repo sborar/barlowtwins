@@ -49,7 +49,7 @@ parser.add_argument('--checkpoint-dir', default='./checkpoint/', type=Path,
 
 parser.add_argument('--device', default='cuda', type=str)
 
-parser.add_argument('--learning_rate', default=0.001, type=str)
+# parser.add_argument('--learning_rate', default=0.001, type=str)
 
 wandb.login(key='ed94033c9c3bebedd51d8c7e1daf4c6eafe44e09')
 wandb.init(project='barlow-twins', entity='sborar')
@@ -77,6 +77,7 @@ def main():
                      weight_decay_filter=exclude_bias_and_norm,
                      lars_adaptation_filter=exclude_bias_and_norm)
 
+    # # automatically resume from checkpoint if it exists
     # if (args.checkpoint_dir / 'checkpoint.pth').is_file():
     #     ckpt = torch.load(args.checkpoint_dir / 'checkpoint.pth',
     #                       map_location='cpu')
@@ -117,10 +118,10 @@ def main():
                     stats = dict(epoch=epoch, step=step,
                                  lr_weights=optimizer.param_groups[0]['lr'],
                                  lr_biases=optimizer.param_groups[1]['lr'],
-                                 loss=running_loss/args.print_freq,
+                                 loss=loss.item(),
                                  time=int(time.time() - start_time))
                     print(json.dumps(stats))
-                    wandb.log({"loss": running_loss/args.print_freq})
+                    wandb.log({"loss": loss.item()})
                     running_loss = 0
                     # print(json.dumps(stats), file=stats_file)
 
@@ -132,7 +133,7 @@ def main():
     if args.rank == 0:
         # save final model
         torch.save(model.module.backbone.state_dict(),
-                   args.checkpoint_dir / 'backbone.pth')
+                   args.checkpoint_dir / 'resnet50.pth')
 
 
 def adjust_learning_rate(args, optimizer, loader, step):
@@ -147,7 +148,6 @@ def adjust_learning_rate(args, optimizer, loader, step):
         q = 0.5 * (1 + math.cos(math.pi * step / max_steps))
         end_lr = base_lr * 0.001
         lr = base_lr * q + end_lr * (1 - q)
-    print('lr', lr)
     optimizer.param_groups[0]['lr'] = lr * args.learning_rate_weights
     optimizer.param_groups[1]['lr'] = lr * args.learning_rate_biases
 
@@ -208,7 +208,6 @@ class BarlowTwins(nn.Module):
         off_diag = off_diagonal(c).pow_(2).sum()
         loss = on_diag + self.args.lambd * off_diag
         return loss
-
 
 
 class LARS(optim.Optimizer):
