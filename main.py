@@ -206,8 +206,9 @@ class BarlowTwins(nn.Module):
     def __init__(self, args):
         super().__init__()
         self.args = args
-        self.backbone = ResAxialAttentionUNet(AxialBlock, [1, 2, 4, 1], s= 0.125)
-        # self.backbone.fc = nn.Identity()
+        # self.backbone = ResAxialAttentionUNet(AxialBlock, [1, 2, 4, 1], s= 0.125)
+        self.backbone = torchvision.models.resnet50(zero_init_residual=True)
+        self.backbone.fc = nn.Identity()
 
         # projector
         sizes = [16384] + list(map(int, args.projector.split('-')))
