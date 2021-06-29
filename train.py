@@ -49,7 +49,7 @@ parser.add_argument('--checkpoint-dir', default='./checkpoint/', type=Path,
 
 parser.add_argument('--device', default='cuda', type=str)
 
-wandb.init(project='barlow-twins')
+wandb.init(project='barlow-twins', entity='sborar')
 config = wandb.config
 
 def main():
@@ -163,12 +163,13 @@ class BarlowTwins(nn.Module):
     def __init__(self, args):
         super().__init__()
         self.args = args
-        self.backbone = ResAxialAttentionUNet(AxialBlock, [1, 2, 4, 1], s= 0.125)
-        # self.backbone = torchvision.models.resnet50(zero_init_residual=True)
-        # self.backbone.fc = nn.Identity()
+        # self.backbone = ResAxialAttentionUNet(AxialBlock, [1, 2, 4, 1], s= 0.125)
+        self.backbone = torchvision.models.resnet50(zero_init_residual=True)
+        self.backbone.fc = nn.Identity()
 
         # projector
-        sizes = [16384] + list(map(int, args.projector.split('-')))
+        # sizes = [16384] + list(map(int, args.projector.split('-')))
+        sizes = [2048] + list(map(int, args.projector.split('-')))
         layers = []
         for i in range(len(sizes) - 2):
             layers.append(nn.Linear(sizes[i], sizes[i + 1], bias=False))
