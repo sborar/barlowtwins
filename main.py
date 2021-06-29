@@ -79,6 +79,7 @@ def main():
         args.rank = 0
         args.dist_url = 'tcp://localhost:58472'
         args.world_size = args.ngpus_per_node
+        print(args.ngpus_per_node)
     torch.multiprocessing.spawn(main_worker, (args,), args.ngpus_per_node)
 
 
@@ -88,14 +89,14 @@ def main_worker(gpu, args):
         backend='nccl', init_method=args.dist_url,
         world_size=args.world_size, rank=args.rank)
 
-    if args.rank == 0:
-        args.checkpoint_dir.mkdir(parents=True, exist_ok=True)
-        stats_file = open(args.checkpoint_dir / 'stats.txt', 'a', buffering=1)
-        print(' '.join(sys.argv))
-        print(' '.join(sys.argv), file=stats_file)
-
-    torch.cuda.set_device(gpu)
-    torch.backends.cudnn.benchmark = True
+    # if args.rank == 0:
+    #     args.checkpoint_dir.mkdir(parents=True, exist_ok=True)
+    #     stats_file = open(args.checkpoint_dir / 'stats.txt', 'a', buffering=1)
+    #     print(' '.join(sys.argv))
+    #     print(' '.join(sys.argv), file=stats_file)
+    #
+    # torch.cuda.set_device(gpu)
+    # torch.backends.cudnn.benchmark = True
 
     model = BarlowTwins(args).cuda(gpu)
     model = nn.SyncBatchNorm.convert_sync_batchnorm(model)
