@@ -54,11 +54,11 @@ parser.add_argument('--learning_rate', default=0.001, type=str)
 wandb.login(key='ed94033c9c3bebedd51d8c7e1daf4c6eafe44e09')
 wandb.init(project='barlow-twins', entity='sborar')
 config = wandb.config
-args = parser.parse_args()
+
 
 
 def main():
-
+    args = parser.parse_args()
     args.rank = 0
     device = args.device
 
@@ -73,7 +73,7 @@ def main():
         else:
             param_weights.append(param)
     parameters = [{'params': param_weights}, {'params': param_biases}]
-    optimizer = LARS(parameters, lr=0.001, weight_decay=args.weight_decay,
+    optimizer = LARS(parameters, lr=0, weight_decay=args.weight_decay,
                      weight_decay_filter=exclude_bias_and_norm,
                      lars_adaptation_filter=exclude_bias_and_norm)
 
@@ -98,20 +98,20 @@ def main():
     # scaler = torch.cuda.amp.GradScaler()
     for epoch in range(start_epoch, args.epochs):
         print('epoch', epoch)
+        running_loss = 0.0
         # sampler.set_epoch(epoch)
         for step, ((y1, y2), _) in enumerate(loader, start=epoch * len(loader)):
             optimizer.zero_grad()
-            print('step', step)
             y1 = y1.to(device)
             y2 = y2.to(device)
-            # adjust_learning_rate(args, optimizer, loader, step)
+            adjust_learning_rate(args, optimizer, loader, step)
             # with torch.cuda.amp.autocast():
                 # print('y',y1)
             loss = model.forward(y1, y2)
-
-            wandb.log({"loss": loss.item()})
             loss.backward()
             optimizer.step()
+
+            running_loss += loss.item()
             if step % args.print_freq == 0:
                 if args.rank == 0:
                     stats = dict(epoch=epoch, step=step,
@@ -121,6 +121,8 @@ def main():
                                  time=int(time.time() - start_time))
                     print(json.dumps(stats))
                     # print(json.dumps(stats), file=stats_file)
+        wandb.log({"loss": running_loss/args.batch_size})
+        print('running loss', running_loss)
         if args.rank == 0:
             # save checkpoint
             state = dict(epoch=epoch + 1, model=model.state_dict(),
@@ -145,8 +147,6 @@ def adjust_learning_rate(args, optimizer, loader, step):
         end_lr = base_lr * 0.001
         lr = base_lr * q + end_lr * (1 - q)
     print('lr', lr)
-    # config.update(d=args, allow_val_change=True)
-    # config.learning_rate = lr
     optimizer.param_groups[0]['lr'] = lr * args.learning_rate_weights
     optimizer.param_groups[1]['lr'] = lr * args.learning_rate_biases
 
