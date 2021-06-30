@@ -30,7 +30,7 @@ parser.add_argument('--workers', default=6, type=int, metavar='N',
                     help='number of data loader workers')
 parser.add_argument('--epochs', default=1000, type=int, metavar='N',
                     help='number of total epochs to run')
-parser.add_argument('--batch-size', default=16, type=int, metavar='N',
+parser.add_argument('--batch-size', default=32, type=int, metavar='N',
                     help='mini-batch size')
 parser.add_argument('--learning-rate-weights', default=0.2, type=float, metavar='LR',
                     help='base learning rate for weights')
@@ -123,9 +123,8 @@ def main_worker(gpu, args):
 
     start_epoch = 0
 
-
     wandb.watch(model)
-    # print(os.listdir(args.data / 'img'))
+
     dataset = torchvision.datasets.ImageFolder(args.data / 'img', Transform())
     sampler = torch.utils.data.distributed.DistributedSampler(dataset)
     assert args.batch_size % args.world_size == 0
@@ -143,8 +142,11 @@ def main_worker(gpu, args):
             y1 = y1.cuda(gpu, non_blocking=True)
             y2 = y2.cuda(gpu, non_blocking=True)
             adjust_learning_rate(args, optimizer, loader, step)
+
             optimizer.zero_grad()
             with torch.cuda.amp.autocast():
+                print('mean', y1.mean(), y2.mean())
+                print('std', y1.std(), y2.std())
                 loss = model.forward(y1, y2)
             scaler.scale(loss).backward()
             scaler.step(optimizer)
@@ -182,6 +184,7 @@ def adjust_learning_rate(args, optimizer, loader, step):
         q = 0.5 * (1 + math.cos(math.pi * step / max_steps))
         end_lr = base_lr * 0.001
         lr = base_lr * q + end_lr * (1 - q)
+    print('lr:',lr)
     optimizer.param_groups[0]['lr'] = lr * args.learning_rate_weights
     optimizer.param_groups[1]['lr'] = lr * args.learning_rate_biases
 
