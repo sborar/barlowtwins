@@ -112,14 +112,16 @@ def main_worker(gpu, args):
                      lars_adaptation_filter=exclude_bias_and_norm)
 
     # # automatically resume from checkpoint if it exists
-    if (args.checkpoint_dir / 'checkpoint.pth').is_file():
-        ckpt = torch.load(args.checkpoint_dir / 'checkpoint.pth',
-                          map_location='cpu')
-        start_epoch = ckpt['epoch']
-        model.load_state_dict(ckpt['model'])
-        optimizer.load_state_dict(ckpt['optimizer'])
-    else:
-        start_epoch = 0
+    # if (args.checkpoint_dir / 'checkpoint.pth').is_file():
+    #     ckpt = torch.load(args.checkpoint_dir / 'checkpoint.pth',
+    #                       map_location='cpu')
+    #     start_epoch = ckpt['epoch']
+    #     model.load_state_dict(ckpt['model'])
+    #     optimizer.load_state_dict(ckpt['optimizer'])
+    # else:
+    #     start_epoch = 0
+
+    start_epoch = 0
 
 
     wandb.watch(model)
