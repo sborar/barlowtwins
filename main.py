@@ -47,11 +47,6 @@ parser.add_argument('--print-freq', default=100, type=int, metavar='N',
 parser.add_argument('--checkpoint-dir', default='./checkpoint/', type=Path,
                     metavar='DIR', help='path to checkpoint directory')
 
-# parser.add_argument('--device', default='cpu', type=str)
-
-# parser.add_argument('--learning_rate', default=0.001, type=str)
-
-
 
 
 def main():
@@ -141,6 +136,7 @@ def main_worker(gpu, args):
     scaler = torch.cuda.amp.GradScaler()
     for epoch in range(start_epoch, args.epochs):
         sampler.set_epoch(epoch)
+        print('epoch', epoch)
         for step, ((y1, y2), _) in enumerate(loader, start=epoch * len(loader)):
             y1 = y1.cuda(gpu, non_blocking=True)
             y2 = y2.cuda(gpu, non_blocking=True)
@@ -226,9 +222,9 @@ class BarlowTwins(nn.Module):
         self.bn = nn.BatchNorm1d(sizes[-1], affine=False)
 
     def forward(self, y1, y2):
-        print(y1)
         z1 = self.projector(self.backbone(y1))
         z2 = self.projector(self.backbone(y2))
+        print(z2)
 
         # empirical cross-correlation matrix
         c = self.bn(z1).T @ self.bn(z2)
