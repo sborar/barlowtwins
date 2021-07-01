@@ -22,6 +22,8 @@ import torchvision
 import torchvision.transforms as transforms
 from axialnet import ResAxialAttentionUNet, AxialBlock
 import wandb
+from torch.utils.tensorboard import SummaryWriter
+
 
 parser = argparse.ArgumentParser(description='Barlow Twins Training')
 parser.add_argument('--data', type=Path, metavar='DIR',
@@ -32,9 +34,9 @@ parser.add_argument('--epochs', default=1000, type=int, metavar='N',
                     help='number of total epochs to run')
 parser.add_argument('--batch-size', default=16, type=int, metavar='N',
                     help='mini-batch size')
-parser.add_argument('--learning-rate-weights', default=0.2, type=float, metavar='LR',
+parser.add_argument('--learning-rate-weights', default=0.1, type=float, metavar='LR',
                     help='base learning rate for weights')
-parser.add_argument('--learning-rate-biases', default=0.0048, type=float, metavar='LR',
+parser.add_argument('--learning-rate-biases', default=0.0030, type=float, metavar='LR',
                     help='base learning rate for biases and batch norm parameters')
 parser.add_argument('--weight-decay', default=1e-6, type=float, metavar='W',
                     help='weight decay')
@@ -82,6 +84,7 @@ def main_worker(gpu, args):
     wandb.login(key='ed94033c9c3bebedd51d8c7e1daf4c6eafe44e09')
     wandb.init(project='distributed-barlow-twins', entity='sborar')
     config = wandb.config
+    writer = SummaryWriter()
     args.rank += gpu
     torch.distributed.init_process_group(
         backend='nccl', init_method=args.dist_url,
@@ -125,6 +128,7 @@ def main_worker(gpu, args):
 
     wandb.watch(model)
 
+
     dataset = torchvision.datasets.ImageFolder(args.data / 'img', Transform())
     sampler = torch.utils.data.distributed.DistributedSampler(dataset)
     assert args.batch_size % args.world_size == 0
@@ -142,13 +146,15 @@ def main_worker(gpu, args):
             y1 = y1.cuda(gpu, non_blocking=True)
             y2 = y2.cuda(gpu, non_blocking=True)
             adjust_learning_rate(args, optimizer, loader, step)
-
+            for tag, parm in model.named_parameters():
+                writer.add_histogram(tag, parm.grad.data.cpu().numpy(), epoch)
             optimizer.zero_grad()
             with torch.cuda.amp.autocast():
                 print('mean', y1.mean(), y2.mean())
                 print('std', y1.std(), y2.std())
                 loss = model.forward(y1, y2)
             scaler.scale(loss).backward()
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
             scaler.step(optimizer)
             scaler.update()
             if step % args.print_freq == 0:
@@ -161,6 +167,8 @@ def main_worker(gpu, args):
                     print(json.dumps(stats))
                     # print(json.dumps(stats), file=stats_file)
                     wandb.log({"loss": loss.item()})
+                    writer.add_scalar('Loss/train', loss.item(), step)
+
         if args.rank == 0:
             # save checkpoint
             state = dict(epoch=epoch + 1, model=model.state_dict(),
@@ -170,6 +178,7 @@ def main_worker(gpu, args):
         # save final model
         torch.save(model.module.backbone.state_dict(),
                    args.checkpoint_dir / 'resnet50.pth')
+    writer.close()
 
 
 def adjust_learning_rate(args, optimizer, loader, step):
@@ -229,7 +238,7 @@ class BarlowTwins(nn.Module):
     def forward(self, y1, y2):
         z1 = self.projector(self.backbone(y1))
         z2 = self.projector(self.backbone(y2))
-        print(z2)
+        print(z1, self.backbone(y1))
 
         # empirical cross-correlation matrix
         c = self.bn(z1).T @ self.bn(z2)
