@@ -186,6 +186,7 @@ def adjust_learning_rate(args, optimizer, loader, step):
     warmup_steps = 10 * len(loader)
     base_lr = 8
     if step < warmup_steps:
+        print('warmup')
         lr = base_lr * step / warmup_steps
     else:
         step -= warmup_steps
