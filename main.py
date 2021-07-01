@@ -96,8 +96,8 @@ def main_worker(gpu, args):
     #     print(' '.join(sys.argv))
     #     print(' '.join(sys.argv), file=stats_file)
     #
-    # torch.cuda.set_device(gpu)
-    # torch.backends.cudnn.benchmark = True
+    torch.cuda.set_device(gpu)
+    torch.backends.cudnn.benchmark = True
 
     model = BarlowTwins(args).cuda(gpu)
     model = nn.SyncBatchNorm.convert_sync_batchnorm(model)
