@@ -32,7 +32,7 @@ parser.add_argument('--workers', default=8, type=int, metavar='N',
                     help='number of data loader workers')
 parser.add_argument('--epochs', default=1000, type=int, metavar='N',
                     help='number of total epochs to run')
-parser.add_argument('--batch-size', default=32, type=int, metavar='N',
+parser.add_argument('--batch-size', default=128, type=int, metavar='N',
                     help='mini-batch size')
 parser.add_argument('--learning-rate-weights', default=0.002, type=float, metavar='LR',
                     help='base learning rate for weights')
@@ -139,11 +139,11 @@ def main():
             # save checkpoint
             state = dict(epoch=epoch + 1, model=model.state_dict(),
                          optimizer=optimizer.state_dict())
-            torch.save(state, args.checkpoint_dir / 'checkpoint.pth')
+            torch.save(state, args.checkpoint_dir / 'resnet18.pth')
     if args.rank == 0:
         # save final model
         torch.save(model.module.backbone.state_dict(),
-                   args.checkpoint_dir / 'resnet50.pth')
+                   args.checkpoint_dir / 'resnet18.pth')
     # writer.close()
 
 
@@ -186,7 +186,7 @@ class BarlowTwins(nn.Module):
         super().__init__()
         self.args = args
         # self.backbone = ResAxialAttentionUNet(AxialBlock, [1, 2, 4, 1], s= 0.125)
-        self.backbone = torchvision.models.resnet50(zero_init_residual=True)
+        self.backbone = torchvision.models.resnet18(zero_init_residual=True)
         self.backbone.fc = nn.Identity()
 
         # projector
