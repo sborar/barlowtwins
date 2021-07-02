@@ -35,9 +35,9 @@ parser.add_argument('--epochs', default=1000, type=int, metavar='N',
                     help='number of total epochs to run')
 parser.add_argument('--batch-size', default=8, type=int, metavar='N',
                     help='mini-batch size')
-parser.add_argument('--learning-rate-weights', default=0.2, type=float, metavar='LR',
+parser.add_argument('--learning-rate-weights', default=0.02, type=float, metavar='LR',
                     help='base learning rate for weights')
-parser.add_argument('--learning-rate-biases', default=0.0048, type=float, metavar='LR',
+parser.add_argument('--learning-rate-biases', default=0.00048, type=float, metavar='LR',
                     help='base learning rate for biases and batch norm parameters')
 parser.add_argument('--weight-decay', default=1e-6, type=float, metavar='W',
                     help='weight decay')
