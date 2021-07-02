@@ -215,7 +215,7 @@ class BarlowTwins(nn.Module):
         c = self.bn(z1).T @ self.bn(z2)
 
         # sum the cross-correlation matrix between all gpus
-        # c.div_(self.args.batch_size)
+        c.div_(self.args.batch_size)
         # torch.distributed.all_reduce(c)
 
         on_diag = torch.diagonal(c).add_(-1).pow_(2).sum()
