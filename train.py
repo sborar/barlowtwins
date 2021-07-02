@@ -21,9 +21,8 @@ import torch
 import torchvision
 import torchvision.transforms as transforms
 from axialnet import ResAxialAttentionUNet, AxialBlock
-# import wandb
+import wandb
 from torch.utils.tensorboard import SummaryWriter
-# from autoclip import _get_grad_norm
 
 
 parser = argparse.ArgumentParser(description='Barlow Twins Training')
