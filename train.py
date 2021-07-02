@@ -21,7 +21,10 @@ import torch
 import torchvision
 import torchvision.transforms as transforms
 from axialnet import ResAxialAttentionUNet, AxialBlock
-import wandb
+# import wandb
+from torch.utils.tensorboard import SummaryWriter
+# from autoclip import _get_grad_norm
+
 
 parser = argparse.ArgumentParser(description='Barlow Twins Training')
 parser.add_argument('--data', type=Path, metavar='DIR',
@@ -49,8 +52,6 @@ parser.add_argument('--checkpoint-dir', default='./checkpoint/', type=Path,
 
 parser.add_argument('--device', default='cuda', type=str)
 
-# parser.add_argument('--learning_rate', default=0.001, type=str)
-
 wandb.login(key='ed94033c9c3bebedd51d8c7e1daf4c6eafe44e09')
 wandb.init(project='barlow-twins', entity='sborar')
 config = wandb.config
@@ -59,6 +60,8 @@ config = wandb.config
 
 def main():
     args = parser.parse_args()
+
+    writer = SummaryWriter()
     args.rank = 0
     device = args.device
 
@@ -99,20 +102,32 @@ def main():
     # scaler = torch.cuda.amp.GradScaler()
     for epoch in range(start_epoch, args.epochs):
         print('epoch', epoch)
-        running_loss = 0.0
         # sampler.set_epoch(epoch)
         for step, ((y1, y2), _) in enumerate(loader, start=epoch * len(loader)):
             optimizer.zero_grad()
             y1 = y1.to(device)
             y2 = y2.to(device)
+            print('mean', y1.mean(), y2.mean())
+            print('std', y1.std(), y2.std())
             adjust_learning_rate(args, optimizer, loader, step)
+            for tag, parm in model.named_parameters():
+                writer.add_histogram(tag, parm.grad.data.cpu().numpy(), epoch)
+
+            print('mean', y1.mean(), y2.mean())
+            print('std', y1.std(), y2.std())
+
             # with torch.cuda.amp.autocast():
                 # print('y',y1)
             loss = model.forward(y1, y2)
+
+
             loss.backward()
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
             optimizer.step()
 
-            running_loss += loss.item()
+            for tag, parm in model.named_parameters():
+                writer.add_histogram(tag, parm.grad.data.cpu().numpy(), epoch)
+
             if step % args.print_freq == 0:
                 if args.rank == 0:
                     stats = dict(epoch=epoch, step=step,
@@ -121,9 +136,9 @@ def main():
                                  loss=loss.item(),
                                  time=int(time.time() - start_time))
                     print(json.dumps(stats))
-                    wandb.log({"loss": loss.item()})
-                    running_loss = 0
                     # print(json.dumps(stats), file=stats_file)
+                    wandb.log({"loss": loss.item()})
+                    writer.add_scalar('Loss/train', loss.item(), step)
 
         if args.rank == 0:
             # save checkpoint
@@ -134,6 +149,7 @@ def main():
         # save final model
         torch.save(model.module.backbone.state_dict(),
                    args.checkpoint_dir / 'resnet50.pth')
+    writer.close()
 
 
 def adjust_learning_rate(args, optimizer, loader, step):
@@ -141,6 +157,7 @@ def adjust_learning_rate(args, optimizer, loader, step):
     warmup_steps = 10 * len(loader)
     base_lr = 8
     if step < warmup_steps:
+        print('warmup')
         lr = base_lr * step / warmup_steps
     else:
         step -= warmup_steps
@@ -148,6 +165,7 @@ def adjust_learning_rate(args, optimizer, loader, step):
         q = 0.5 * (1 + math.cos(math.pi * step / max_steps))
         end_lr = base_lr * 0.001
         lr = base_lr * q + end_lr * (1 - q)
+    print('lr:',lr)
     optimizer.param_groups[0]['lr'] = lr * args.learning_rate_weights
     optimizer.param_groups[1]['lr'] = lr * args.learning_rate_biases
 
@@ -193,9 +211,10 @@ class BarlowTwins(nn.Module):
     def forward(self, y1, y2):
         batch_size = y1.shape[0]
         b1 = self.backbone(y1)
-        z1 = self.projector(b1.view(batch_size,-1))
+        z1 = self.projector(b1)
         b2 = self.backbone(y2)
-        z2 = self.projector(b2.view(batch_size,-1))
+        z2 = self.projector(b2)
+        print(z2)
 
         # empirical cross-correlation matrix
         c = self.bn(z1).T @ self.bn(z2)
