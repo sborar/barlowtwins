@@ -106,11 +106,8 @@ def main():
             optimizer.zero_grad()
             y1 = y1.to(device)
             y2 = y2.to(device)
-            print('mean', y1.mean(), y2.mean())
-            print('std', y1.std(), y2.std())
             adjust_learning_rate(args, optimizer, loader, step)
-            for tag, parm in model.named_parameters():
-                writer.add_histogram(tag, parm.grad.data.cpu().numpy(), epoch)
+
 
             print('mean', y1.mean(), y2.mean())
             print('std', y1.std(), y2.std())
@@ -123,6 +120,10 @@ def main():
             loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
             optimizer.step()
+
+            for tag, parm in model.named_parameters():
+                writer.add_histogram(tag, parm.grad.data.cpu().numpy(), epoch)
+
 
             for tag, parm in model.named_parameters():
                 writer.add_histogram(tag, parm.grad.data.cpu().numpy(), epoch)
