@@ -22,7 +22,7 @@ import torchvision
 import torchvision.transforms as transforms
 from axialnet import ResAxialAttentionUNet, AxialBlock
 import wandb
-from torch.utils.tensorboard import SummaryWriter
+# from torch.utils.tensorboard import SummaryWriter
 
 
 parser = argparse.ArgumentParser(description='Barlow Twins Training')
@@ -59,8 +59,8 @@ config = wandb.config
 
 def main():
     args = parser.parse_args()
-
-    writer = SummaryWriter()
+    #
+    # writer = SummaryWriter()
     args.rank = 0
     device = args.device
 
@@ -103,11 +103,10 @@ def main():
         print('epoch', epoch)
         # sampler.set_epoch(epoch)
         for step, ((y1, y2), _) in enumerate(loader, start=epoch * len(loader)):
-            optimizer.zero_grad()
             y1 = y1.to(device)
             y2 = y2.to(device)
             adjust_learning_rate(args, optimizer, loader, step)
-
+            optimizer.zero_grad()
 
             print('mean', y1.mean(), y2.mean())
             print('std', y1.std(), y2.std())
@@ -120,13 +119,9 @@ def main():
             loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
             optimizer.step()
-
-            for tag, parm in model.named_parameters():
-                writer.add_histogram(tag, parm.grad.data.cpu().numpy(), epoch)
-
-
-            for tag, parm in model.named_parameters():
-                writer.add_histogram(tag, parm.grad.data.cpu().numpy(), epoch)
+            #
+            # for tag, parm in model.named_parameters():
+            #     writer.add_histogram(tag, parm.grad.data.cpu().numpy(), epoch)
 
             if step % args.print_freq == 0:
                 if args.rank == 0:
@@ -138,7 +133,7 @@ def main():
                     print(json.dumps(stats))
                     # print(json.dumps(stats), file=stats_file)
                     wandb.log({"loss": loss.item()})
-                    writer.add_scalar('Loss/train', loss.item(), step)
+                    # writer.add_scalar('Loss/train', loss.item(), step)
 
         if args.rank == 0:
             # save checkpoint
@@ -149,7 +144,7 @@ def main():
         # save final model
         torch.save(model.module.backbone.state_dict(),
                    args.checkpoint_dir / 'resnet50.pth')
-    writer.close()
+    # writer.close()
 
 
 def adjust_learning_rate(args, optimizer, loader, step):
