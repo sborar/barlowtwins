@@ -46,8 +46,8 @@ parser.add_argument('--projector', default='8192-8192-8192', type=str,
                     metavar='MLP', help='projector MLP')
 parser.add_argument('--print-freq', default=100, type=int, metavar='N',
                     help='print frequency')
-parser.add_argument('--checkpoint-dir', default='./checkpoint/', type=Path,
-                    metavar='DIR', help='path to checkpoint directory')
+parser.add_argument('--checkpoint-path', default='./checkpoint/checkpoint.pth', type=Path,
+                    metavar='DIR', help='path to checkpoint file')
 
 parser.add_argument('--device', default='cuda', type=str)
 
@@ -79,17 +79,17 @@ def main():
                      weight_decay_filter=exclude_bias_and_norm,
                      lars_adaptation_filter=exclude_bias_and_norm)
 
-    # # automatically resume from checkpoint if it exists
-    # if (args.checkpoint_dir / 'checkpoint.pth').is_file():
-    #     ckpt = torch.load(args.checkpoint_dir / 'checkpoint.pth',
-    #                       map_location='cpu')
-    #     start_epoch = ckpt['epoch']
-    #     model.load_state_dict(ckpt['model'])
-    #     optimizer.load_state_dict(ckpt['optimizer'])
-    # else:
-    #     start_epoch = 0
+    # automatically resume from checkpoint if it exists
+    if (args.checkpoint_path).is_file():
+        ckpt = torch.load(args.checkpoint_path,
+                          map_location='cpu')
+        start_epoch = ckpt['epoch']
+        model.load_state_dict(ckpt['model'])
+        optimizer.load_state_dict(ckpt['optimizer'])
+    else:
+        start_epoch = 0
 
-    start_epoch = 0
+    # start_epoch = 0
 
     wandb.watch(model)
 
@@ -139,12 +139,12 @@ def main():
             # save checkpoint
             state = dict(epoch=epoch + 1, model=model.state_dict(),
                          optimizer=optimizer.state_dict())
-            torch.save(state, args.checkpoint_dir / 'resnet18.pth')
+            torch.save(state, args.checkpoint_path)
     if args.rank == 0:
         # save final model
         torch.save(model.module.backbone.state_dict(),
-                   args.checkpoint_dir / 'resnet18.pth')
-    # writer.close()
+                   args.checkpoint_path)
+    writer.close()
 
 
 def adjust_learning_rate(args, optimizer, loader, step):
