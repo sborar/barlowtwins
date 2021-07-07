@@ -22,7 +22,8 @@ import torchvision
 import torchvision.transforms as transforms
 from axialnet import ResAxialAttentionUNet, AxialBlock
 import wandb
-# from torch.utils.tensorboard import SummaryWriter
+from unet import UNet
+
 
 
 parser = argparse.ArgumentParser(description='Barlow Twins Training')
@@ -186,12 +187,13 @@ class BarlowTwins(nn.Module):
         super().__init__()
         self.args = args
         # self.backbone = ResAxialAttentionUNet(AxialBlock, [1, 2, 4, 1], s= 0.125)
-        self.backbone = torchvision.models.resnet18(zero_init_residual=True)
-        self.backbone.fc = nn.Identity()
+        # self.backbone = torchvision.models.resnet50(zero_init_residual=True)
+        # self.backbone.fc = nn.Identity()
+        self.backbone = UNet(3)
 
         # projector
         # sizes = [16384] + list(map(int, args.projector.split('-')))
-        sizes = [512] + list(map(int, args.projector.split('-')))
+        sizes = [32768] + list(map(int, args.projector.split('-')))
         layers = []
         for i in range(len(sizes) - 2):
             layers.append(nn.Linear(sizes[i], sizes[i + 1], bias=False))
@@ -206,9 +208,9 @@ class BarlowTwins(nn.Module):
     def forward(self, y1, y2):
         batch_size = y1.shape[0]
         b1 = self.backbone(y1)
-        z1 = self.projector(b1)
+        z1 = self.projector(b1.view(batch_size, -1))
         b2 = self.backbone(y2)
-        z2 = self.projector(b2)
+        z2 = self.projector(b2.view(batch_size, -1))
         print(z2)
 
         # empirical cross-correlation matrix
