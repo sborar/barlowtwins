@@ -27,8 +27,7 @@ for image_file in image_files:
 
         for i in range(x):
             output_image_fname = join(raw_data_folder, 'img/1', pid_scanid + "_" + str(i) + ".png")
-            Image.fromarray(np.uint8(image[i, :, :])).convert('RGB').resize((128, 128)).save(
-                output_image_fname)
+            Image.fromarray(np.uint8(image[i, :, :])).convert('RGB').save(output_image_fname)
 
     except Exception as e:
         print(e)

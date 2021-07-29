@@ -20,14 +20,14 @@ from torch import nn, optim
 import torch
 import torchvision
 import torchvision.transforms as transforms
-from axialnet import ResAxialAttentionUNet, AxialBlock
+# from axialnet import ResAxialAttentionUNet, AxialBlock
 import wandb
-from unet import UNet
+# from unet import UNet
 
 
 
 parser = argparse.ArgumentParser(description='Barlow Twins Training')
-parser.add_argument('--data', type=Path, metavar='DIR',
+parser.add_argument('--data', default='train_dataset/img',type=Path, metavar='DIR',
                     help='path to dataset')
 parser.add_argument('--workers', default=8, type=int, metavar='N',
                     help='number of data loader workers')
@@ -95,7 +95,7 @@ def main():
 
     wandb.watch(model)
 
-    dataset = torchvision.datasets.ImageFolder('train_dataset/img', Transform())
+    dataset = torchvision.datasets.ImageFolder(args.data, Transform())
     loader = torch.utils.data.DataLoader(
         dataset, batch_size=args.batch_size)
 
@@ -212,7 +212,7 @@ class BarlowTwins(nn.Module):
         z1 = self.projector(b1)
         b2 = self.backbone(y2)
         z2 = self.projector(b2)
-        print(z2)
+        # print(z2)
 
         # empirical cross-correlation matrix
         c = self.bn(z1).T @ self.bn(z2)
