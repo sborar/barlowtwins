@@ -22,12 +22,12 @@ import torchvision
 import torchvision.transforms as transforms
 # from axialnet import ResAxialAttentionUNet, AxialBlock
 import wandb
+
 # from unet import UNet
 
 
-
 parser = argparse.ArgumentParser(description='Barlow Twins Training')
-parser.add_argument('--data', default='train_dataset/img',type=Path, metavar='DIR',
+parser.add_argument('--data', default='train_dataset/img', type=Path, metavar='DIR',
                     help='path to dataset')
 parser.add_argument('--workers', default=8, type=int, metavar='N',
                     help='number of data loader workers')
@@ -57,7 +57,6 @@ wandb.init(project='barlow-twins', entity='sborar')
 config = wandb.config
 
 
-
 def main():
     args = parser.parse_args()
     #
@@ -65,7 +64,6 @@ def main():
     args.rank = 0
     device = args.device
     print(args)
-
 
     model = BarlowTwins(args)
     model.to(device)
@@ -114,9 +112,8 @@ def main():
             print('std', y1.std(), y2.std())
 
             # with torch.cuda.amp.autocast():
-                # print('y',y1)
+            # print('y',y1)
             loss = model.forward(y1, y2)
-
 
             loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
@@ -162,7 +159,7 @@ def adjust_learning_rate(args, optimizer, loader, step):
         q = 0.5 * (1 + math.cos(math.pi * step / max_steps))
         end_lr = base_lr * 0.001
         lr = base_lr * q + end_lr * (1 - q)
-    print('lr:',lr)
+    print('lr:', lr)
     optimizer.param_groups[0]['lr'] = lr * args.learning_rate_weights
     optimizer.param_groups[1]['lr'] = lr * args.learning_rate_biases
 
