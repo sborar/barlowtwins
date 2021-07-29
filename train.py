@@ -47,7 +47,7 @@ parser.add_argument('--projector', default='8192-8192-8192', type=str,
                     metavar='MLP', help='projector MLP')
 parser.add_argument('--print-freq', default=100, type=int, metavar='N',
                     help='print frequency')
-parser.add_argument('--checkpoint-path', default='./checkpoint/checkpoint.pth', type=Path,
+parser.add_argument('--checkpoint-path', default='./checkpoint/resnet18.pth', type=Path,
                     metavar='DIR', help='path to checkpoint file')
 
 parser.add_argument('--device', default='cuda', type=str)
@@ -91,7 +91,7 @@ def main():
     else:
         start_epoch = 0
 
-    #     start_epoch = 0
+    # start_epoch = 0
 
     wandb.watch(model)
 
