@@ -141,7 +141,7 @@ def main():
             torch.save(state, args.checkpoint_path)
     if args.rank == 0:
         # save final model
-        torch.save(model.module.backbone.state_dict(),
+        torch.save(model.backbone.state_dict(),
                    args.checkpoint_path)
     # writer.close()
 
