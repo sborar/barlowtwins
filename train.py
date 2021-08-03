@@ -308,6 +308,7 @@ class Solarization(object):
 class Transform:
     def __init__(self):
         self.transform = transforms.Compose([
+            transforms.Resize(512),
             # transforms.RandomResizedCrop(128, interpolation=Image.BICUBIC), # Not square always,
             # transforms.RandomHorizontalFlip(p=0.5),
             # transforms.RandomApply(
@@ -323,6 +324,7 @@ class Transform:
             # see if any of the contrastive methods have used any transforms
         ])
         self.transform_prime = transforms.Compose([
+            transforms.Resize(512),
             # transforms.RandomResizedCrop(128, interpolation=Image.BICUBIC),
             # transforms.RandomHorizontalFlip(p=0.5),
             # transforms.RandomApply(
