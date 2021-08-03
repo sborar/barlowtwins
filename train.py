@@ -23,6 +23,8 @@ import torchvision.transforms as transforms
 # from axialnet import ResAxialAttentionUNet, AxialBlock
 import wandb
 import numpy as np
+import albumentations as A
+from albumentations.pytorch import ToTensorV2
 
 # from unet import UNet
 
@@ -51,7 +53,7 @@ parser.add_argument('--print-freq', default=100, type=int, metavar='N',
 parser.add_argument('--checkpoint-path', default='./checkpoint/resnet18.pth', type=Path,
                     metavar='DIR', help='path to checkpoint file')
 
-parser.add_argument('--device', default='cuda', type=str)
+parser.add_argument('--device', default='cpu', type=str)
 
 wandb.login(key='ed94033c9c3bebedd51d8c7e1daf4c6eafe44e09')
 wandb.init(project='barlow-twins', entity='sborar')
@@ -307,41 +309,35 @@ class Solarization(object):
 
 class Transform:
     def __init__(self):
-        self.transform = transforms.Compose([
-            transforms.Resize(512),
-            # transforms.RandomResizedCrop(128, interpolation=Image.BICUBIC), # Not square always,
-            # transforms.RandomHorizontalFlip(p=0.5),
-            # transforms.RandomApply(
-            #     [transforms.ColorJitter(brightness=0.4, contrast=0.4)],
-            #     p=0.8
-            # ),
-            # # transforms.RandomGrayscale(p=0.2),
-            # GaussianBlur(p=0.5),
-            # add sharpening transform
-            transforms.ToTensor()
-            # transforms.Normalize(mean=[0.485, 0.456, 0.406],
-            #                      std=[0.229, 0.224, 0.225]) # normalize in resnet from 0 to 1
-            # see if any of the contrastive methods have used any transforms
+        self.transform = A.Compose([
+            A.Resize(256, 256, p=1),
+            A.RandomScale(scale_limit=(0.75, 1.5), p=0.3),
+            A.PadIfNeeded(min_height=256, min_width=256, p=1),
+            A.CenterCrop(256, 256, p=1),
+            A.RandomBrightnessContrast(p=0.2),
+            A.Blur(p=0.2),
+            A.Sharpen(p=0.2),
+            A.Normalize(mean=(0.243, 0.243, 0.243),
+                        std=(0.0416, 0.0416, 0.0416)),
+            ToTensorV2(always_apply=True)
         ])
-        self.transform_prime = transforms.Compose([
-            transforms.Resize(512),
-            # transforms.RandomResizedCrop(128, interpolation=Image.BICUBIC),
-            # transforms.RandomHorizontalFlip(p=0.5),
-            # transforms.RandomApply(
-            #     [transforms.ColorJitter(brightness=0.4, contrast=0.4,
-            #                             saturation=0.2, hue=0.1)],
-            #     p=0.8
-            # ),
-            # # transforms.RandomGrayscale(p=0.2),
-            # GaussianBlur(p=0.1),
-            transforms.ToTensor()
-            # transforms.Normalize(mean=[0.485, 0.456, 0.406],
-            #                      std=[0.229, 0.224, 0.225])
+        self.transform_prime = A.Compose([
+            A.Resize(256, 256, p=1),
+            A.RandomScale(scale_limit=(0.75, 1.5), p=0.3),
+            A.PadIfNeeded(min_height=256, min_width=256, p=1),
+            A.CenterCrop(256, 256, p=1),
+            A.RandomBrightnessContrast(p=0.2),
+            A.Blur(p=0.2),
+            A.Sharpen(p=0.2),
+            A.Normalize(mean=(0.243, 0.243, 0.243),
+                        std=(0.0416, 0.0416, 0.0416)),
+            ToTensorV2(always_apply=True)
         ])
 
     def __call__(self, x):
-        y1 = self.transform(x)
-        y2 = self.transform_prime(x)
+        image = np.array(x)
+        y1 = self.transform(image=image)['image']
+        y2 = self.transform_prime(image=image)['image']
         return y1, y2
 
 
