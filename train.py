@@ -310,10 +310,10 @@ class Solarization(object):
 class Transform:
     def __init__(self):
         self.transform = A.Compose([
-            A.Resize(256, 256, p=1),
+            A.Resize(128, 128, p=1),
             A.RandomScale(scale_limit=(0.75, 1.5), p=0.3),
-            A.PadIfNeeded(min_height=256, min_width=256, p=1),
-            A.CenterCrop(256, 256, p=1),
+            A.PadIfNeeded(min_height=128, min_width=128, p=1),
+            A.CenterCrop(128, 128, p=1),
             A.RandomBrightnessContrast(p=0.2),
             A.Blur(p=0.2),
             A.Sharpen(p=0.2),
@@ -322,10 +322,10 @@ class Transform:
             ToTensorV2(always_apply=True)
         ])
         self.transform_prime = A.Compose([
-            A.Resize(256, 256, p=1),
+            A.Resize(128, 128, p=1),
             A.RandomScale(scale_limit=(0.75, 1.5), p=0.3),
-            A.PadIfNeeded(min_height=256, min_width=256, p=1),
-            A.CenterCrop(256, 256, p=1),
+            A.PadIfNeeded(min_height=128, min_width=128, p=1),
+            A.CenterCrop(128, 128, p=1),
             A.RandomBrightnessContrast(p=0.2),
             A.Blur(p=0.2),
             A.Sharpen(p=0.2),
