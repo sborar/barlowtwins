@@ -22,6 +22,7 @@ import torchvision
 import torchvision.transforms as transforms
 # from axialnet import ResAxialAttentionUNet, AxialBlock
 import wandb
+import numpy as np
 
 # from unet import UNet
 
@@ -33,7 +34,7 @@ parser.add_argument('--workers', default=8, type=int, metavar='N',
                     help='number of data loader workers')
 parser.add_argument('--epochs', default=1000, type=int, metavar='N',
                     help='number of total epochs to run')
-parser.add_argument('--batch-size', default=128, type=int, metavar='N',
+parser.add_argument('--batch-size', default=64, type=int, metavar='N',
                     help='mini-batch size')
 parser.add_argument('--learning-rate-weights', default=0.002, type=float, metavar='LR',
                     help='base learning rate for weights')
@@ -93,12 +94,18 @@ def main():
 
     wandb.watch(model)
 
-    dataset = torchvision.datasets.ImageFolder(args.data, Transform())
+    dataset = torchvision.datasets.ImageFolder('train_dataset/img', Transform())
     loader = torch.utils.data.DataLoader(
         dataset, batch_size=args.batch_size)
 
     start_time = time.time()
     # scaler = torch.cuda.amp.GradScaler()
+    mean_x = []
+    mean_y = []
+    mean_z = []
+    std_x = []
+    std_y = []
+    std_z = []
     for epoch in range(start_epoch, args.epochs):
         print('epoch', epoch)
         # sampler.set_epoch(epoch)
@@ -107,9 +114,18 @@ def main():
             y2 = y2.to(device)
             adjust_learning_rate(args, optimizer, loader, step)
             optimizer.zero_grad()
-
-            print('mean', y1.mean(), y2.mean())
-            print('std', y1.std(), y2.std())
+            mean_x.append(y2[:, 0, :, :].mean().item())
+            mean_y.append(y2[:, 1, :, :].mean().item())
+            mean_z.append(y2[:, 2, :, :].mean().item())
+            std_x.append(y2[:, 0, :, :].std().item())
+            std_y.append(y2[:, 1, :, :].std().item())
+            std_z.append(y2[:, 2, :, :].std().item())
+            print('mean_x', np.mean(mean_x))
+            print('mean_y', np.mean(mean_y))
+            print('mean_z', np.mean(mean_z))
+            print('std_x', np.std(std_x))
+            print('std_y', np.std(std_y))
+            print('std_z', np.std(std_z))
 
             # with torch.cuda.amp.autocast():
             # print('y',y1)
@@ -292,34 +308,33 @@ class Solarization(object):
 class Transform:
     def __init__(self):
         self.transform = transforms.Compose([
-            transforms.RandomResizedCrop(256, interpolation=Image.BICUBIC),
-            transforms.RandomHorizontalFlip(p=0.5),
-            transforms.RandomApply(
-                [transforms.ColorJitter(brightness=0.4, contrast=0.4,
-                                        saturation=0.2, hue=0.1)],
-                p=0.8
-            ),
-            transforms.RandomGrayscale(p=0.2),
-            GaussianBlur(p=1.0),
-            Solarization(p=0.0),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                 std=[0.229, 0.224, 0.225])
+            # transforms.RandomResizedCrop(128, interpolation=Image.BICUBIC), # Not square always,
+            # transforms.RandomHorizontalFlip(p=0.5),
+            # transforms.RandomApply(
+            #     [transforms.ColorJitter(brightness=0.4, contrast=0.4)],
+            #     p=0.8
+            # ),
+            # # transforms.RandomGrayscale(p=0.2),
+            # GaussianBlur(p=0.5),
+            # add sharpening transform
+            transforms.ToTensor()
+            # transforms.Normalize(mean=[0.485, 0.456, 0.406],
+            #                      std=[0.229, 0.224, 0.225]) # normalize in resnet from 0 to 1
+            # see if any of the contrastive methods have used any transforms
         ])
         self.transform_prime = transforms.Compose([
-            transforms.RandomResizedCrop(256, interpolation=Image.BICUBIC),
-            transforms.RandomHorizontalFlip(p=0.5),
-            transforms.RandomApply(
-                [transforms.ColorJitter(brightness=0.4, contrast=0.4,
-                                        saturation=0.2, hue=0.1)],
-                p=0.8
-            ),
-            transforms.RandomGrayscale(p=0.2),
-            GaussianBlur(p=0.1),
-            Solarization(p=0.2),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                 std=[0.229, 0.224, 0.225])
+            # transforms.RandomResizedCrop(128, interpolation=Image.BICUBIC),
+            # transforms.RandomHorizontalFlip(p=0.5),
+            # transforms.RandomApply(
+            #     [transforms.ColorJitter(brightness=0.4, contrast=0.4,
+            #                             saturation=0.2, hue=0.1)],
+            #     p=0.8
+            # ),
+            # # transforms.RandomGrayscale(p=0.2),
+            # GaussianBlur(p=0.1),
+            transforms.ToTensor()
+            # transforms.Normalize(mean=[0.485, 0.456, 0.406],
+            #                      std=[0.229, 0.224, 0.225])
         ])
 
     def __call__(self, x):
