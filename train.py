@@ -335,7 +335,7 @@ class Transform:
         ])
 
     def __call__(self, x):
-        image = np.array(x)/255.0
+        image = np.array(x)/255
         y1 = self.transform(image=image)['image']
         y2 = self.transform_prime(image=image)['image']
         return y1.double(), y2.double()
