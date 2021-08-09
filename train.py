@@ -310,32 +310,32 @@ class Solarization(object):
 class Transform:
     def __init__(self):
         self.transform = A.Compose([
-            A.Resize(128, 128, p=1),
-            A.RandomScale(scale_limit=(0.75, 1.5), p=0.3),
-            A.PadIfNeeded(min_height=128, min_width=128, p=1),
-            A.CenterCrop(128, 128, p=1),
-            A.RandomBrightnessContrast(p=0.2),
-            A.Blur(p=0.2),
-            A.Sharpen(p=0.2),
-            A.Normalize(mean=(0.243, 0.243, 0.243),
-                        std=(0.0416, 0.0416, 0.0416)),
+            # A.Resize(128, 128, p=1),
+            # A.RandomScale(scale_limit=(0.75, 1.5), p=0.3),
+            # A.PadIfNeeded(min_height=128, min_width=128, p=1),
+            # A.CenterCrop(128, 128, p=1),
+            # A.RandomBrightnessContrast(p=0.2),
+            # A.Blur(p=0.2),
+            # A.Sharpen(p=0.2),
+            # A.Normalize(mean=(0.243, 0.243, 0.243),
+            #             std=(0.0416, 0.0416, 0.0416)),
             ToTensorV2(always_apply=True)
         ])
         self.transform_prime = A.Compose([
-            A.Resize(128, 128, p=1),
-            A.RandomScale(scale_limit=(0.75, 1.5), p=0.3),
-            A.PadIfNeeded(min_height=128, min_width=128, p=1),
-            A.CenterCrop(128, 128, p=1),
-            A.RandomBrightnessContrast(p=0.2),
-            A.Blur(p=0.2),
-            A.Sharpen(p=0.2),
-            A.Normalize(mean=(0.243, 0.243, 0.243),
-                        std=(0.0416, 0.0416, 0.0416)),
+            # A.Resize(128, 128, p=1),
+            # A.RandomScale(scale_limit=(0.75, 1.5), p=0.3),
+            # A.PadIfNeeded(min_height=128, min_width=128, p=1),
+            # A.CenterCrop(128, 128, p=1),
+            # A.RandomBrightnessContrast(p=0.2),
+            # A.Blur(p=0.2),
+            # A.Sharpen(p=0.2),
+            # A.Normalize(mean=(0.243, 0.243, 0.243),
+            #             std=(0.0416, 0.0416, 0.0416)),
             ToTensorV2(always_apply=True)
         ])
 
     def __call__(self, x):
-        image = np.array(x)
+        image = np.array(x)/255
         y1 = self.transform(image=image)['image']
         y2 = self.transform_prime(image=image)['image']
         return y1, y2
