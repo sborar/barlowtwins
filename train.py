@@ -338,7 +338,7 @@ class Transform:
         image = np.float32(np.array(x)/255.0)
         y1 = self.transform(image=image)['image']
         y2 = self.transform_prime(image=image)['image']
-        return y1.double(), y2.double()
+        return y1, y2
 
 
 if __name__ == '__main__':
