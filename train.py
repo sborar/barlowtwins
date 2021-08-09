@@ -36,7 +36,7 @@ parser.add_argument('--workers', default=8, type=int, metavar='N',
                     help='number of data loader workers')
 parser.add_argument('--epochs', default=1000, type=int, metavar='N',
                     help='number of total epochs to run')
-parser.add_argument('--batch-size', default=256, type=int, metavar='N',
+parser.add_argument('--batch-size', default=2, type=int, metavar='N',
                     help='mini-batch size')
 parser.add_argument('--learning-rate-weights', default=0.002, type=float, metavar='LR',
                     help='base learning rate for weights')
@@ -53,7 +53,7 @@ parser.add_argument('--print-freq', default=100, type=int, metavar='N',
 parser.add_argument('--checkpoint-path', default='./checkpoint/resnet18.pth', type=Path,
                     metavar='DIR', help='path to checkpoint file')
 
-parser.add_argument('--device', default='cuda', type=str)
+parser.add_argument('--device', default='cpu', type=str)
 
 wandb.login(key='ed94033c9c3bebedd51d8c7e1daf4c6eafe44e09')
 wandb.init(project='barlow-twins', entity='sborar')
@@ -335,7 +335,7 @@ class Transform:
         ])
 
     def __call__(self, x):
-        image = np.array(x)/255
+        image = np.float32(np.array(x)/255.0)
         y1 = self.transform(image=image)['image']
         y2 = self.transform_prime(image=image)['image']
         return y1.double(), y2.double()
