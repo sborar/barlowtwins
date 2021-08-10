@@ -203,7 +203,7 @@ class BarlowTwins(nn.Module):
         super().__init__()
         self.args = args
         # self.backbone = ResAxialAttentionUNet(AxialBlock, [1, 2, 4, 1], s= 0.125)
-        self.backbone = torchvision.models.resnet18(zero_init_residual=True)
+        self.backbone = torchvision.models.resnet18(zero_init_residual=True, pretrained=True)
         self.backbone.fc = nn.Identity()
         # self.backbone = UNet(3)
 
