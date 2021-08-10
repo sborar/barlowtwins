@@ -330,8 +330,8 @@ class Transform:
             A.RandomBrightnessContrast(p=0.2),
             A.Blur(p=0.2),
             A.Sharpen(p=0.2),
-            A.Normalize(mean=(0.2, 0.2, 0.2),
-                        std=(0.25, 0.25, 0.25),
+            A.Normalize(mean=(0.28, 0.28, 0.28),
+                        std=(0.031, 0.031, 0.031),
                         max_pixel_value=1.0, p=1),
             ToTensorV2(always_apply=True)
         ])
