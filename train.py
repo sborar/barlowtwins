@@ -317,8 +317,9 @@ class Transform:
             A.RandomBrightnessContrast(p=0.2),
             A.Blur(p=0.2),
             A.Sharpen(p=0.2),
-            # A.Normalize(mean=(0.243, 0.243, 0.243),
-            #             std=(0.0416, 0.0416, 0.0416)),
+            A.Normalize(mean=(0.48, 0.48, 0.48),
+                        std=(0.25, 0.25, 0.25),
+                        max_pixel_value=1.0, p=1),
             ToTensorV2(always_apply=True)
         ])
         self.transform_prime = A.Compose([
@@ -329,8 +330,9 @@ class Transform:
             A.RandomBrightnessContrast(p=0.2),
             A.Blur(p=0.2),
             A.Sharpen(p=0.2),
-            # A.Normalize(mean=(0.243, 0.243, 0.243),
-            #             std=(0.0416, 0.0416, 0.0416)),
+            A.Normalize(mean=(0.48, 0.48, 0.48),
+                        std=(0.25, 0.25, 0.25),
+                        max_pixel_value=1.0, p=1),
             ToTensorV2(always_apply=True)
         ])
 
