@@ -83,16 +83,14 @@ def main():
                      lars_adaptation_filter=exclude_bias_and_norm)
 
     # automatically resume from checkpoint if it exists
-    # if (args.checkpoint_path).is_file():
-    #     ckpt = torch.load(args.checkpoint_path,
-    #                       map_location='cpu')
-    #     start_epoch = ckpt['epoch']
-    #     model.load_state_dict(ckpt['model'])
-    #     optimizer.load_state_dict(ckpt['optimizer'])
-    # else:
-    #     start_epoch = 0
-
-    start_epoch = 0
+    if (args.checkpoint_path).is_file():
+        ckpt = torch.load(args.checkpoint_path,
+                          map_location='cpu')
+        start_epoch = ckpt['epoch']
+        model.load_state_dict(ckpt['model'])
+        optimizer.load_state_dict(ckpt['optimizer'])
+    else:
+        start_epoch = 0
 
     wandb.watch(model)
 
@@ -317,8 +315,8 @@ class Transform:
             A.RandomBrightnessContrast(p=0.2),
             A.Blur(p=0.2),
             A.Sharpen(p=0.2),
-            A.Normalize(mean=(0.2, 0.2, 0.2),
-                        std=(0.25, 0.25, 0.25),
+            A.Normalize(mean=(0.28, 0.28, 0.28),
+                        std=(0.031, 0.031, 0.031),
                         max_pixel_value=1.0, p=1),
             ToTensorV2(always_apply=True)
         ])
