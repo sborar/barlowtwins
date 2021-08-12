@@ -50,6 +50,8 @@ parser.add_argument('--projector', default='8192-8192-8192', type=str,
                     metavar='MLP', help='projector MLP')
 parser.add_argument('--print-freq', default=100, type=int, metavar='N',
                     help='print frequency')
+parser.add_argument('--pretrained', default=False, type=bool, metavar='N',
+                    help='pretrain with imagenet')
 parser.add_argument('--checkpoint-path', default='./checkpoint/resnet18.pth', type=Path,
                     metavar='DIR', help='path to checkpoint file')
 
@@ -201,7 +203,7 @@ class BarlowTwins(nn.Module):
         super().__init__()
         self.args = args
         # self.backbone = ResAxialAttentionUNet(AxialBlock, [1, 2, 4, 1], s= 0.125)
-        self.backbone = torchvision.models.resnet18(zero_init_residual=True, pretrained=True)
+        self.backbone = torchvision.models.resnet18(zero_init_residual=True, pretrained=args.pretrained)
         self.backbone.fc = nn.Identity()
         # self.backbone = UNet(3)
 
