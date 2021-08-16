@@ -311,12 +311,12 @@ class Transform:
     def __init__(self):
         self.transform = A.Compose([
             A.Resize(128, 128, p=1),
-            A.RandomScale(scale_limit=(0.75, 1.5), p=0.3),
+            A.RandomScale(scale_limit=(0.75, 1.5), p=0.4),
             A.PadIfNeeded(min_height=128, min_width=128, p=1),
             A.RandomCrop(128, 128, p=1),
-            A.RandomBrightnessContrast(p=0.2),
-            A.Blur(p=0.2),
-            A.Sharpen(p=0.2),
+            A.RandomBrightnessContrast(p=0.3),
+            A.Blur(p=0.3),
+            A.Sharpen(p=0.3),
             A.Normalize(mean=(0.28, 0.28, 0.28),
                         std=(0.031, 0.031, 0.031),
                         max_pixel_value=1.0, p=1),
@@ -324,12 +324,12 @@ class Transform:
         ])
         self.transform_prime = A.Compose([
             A.Resize(128, 128, p=1),
-            A.RandomScale(scale_limit=(0.75, 1.5), p=0.3),
+            A.RandomScale(scale_limit=(0.75, 1.5), p=0.4),
             A.PadIfNeeded(min_height=128, min_width=128, p=1),
             A.RandomCrop(128, 128, p=1),
-            A.RandomBrightnessContrast(p=0.2),
-            A.Blur(p=0.2),
-            A.Sharpen(p=0.2),
+            A.RandomBrightnessContrast(p=0.3),
+            A.Blur(p=0.3),
+            A.Sharpen(p=0.3),
             A.Normalize(mean=(0.28, 0.28, 0.28),
                         std=(0.031, 0.031, 0.031),
                         max_pixel_value=1.0, p=1),
