@@ -52,7 +52,9 @@ parser.add_argument('--print-freq', default=100, type=int, metavar='N',
                     help='print frequency')
 parser.add_argument('--pretrained', default=False, type=bool, metavar='N',
                     help='pretrain with imagenet')
-parser.add_argument('--checkpoint-path', default='./checkpoint/resnet18_loss_2400_wrong_norm_bk.pth', type=Path,
+parser.add_argument('--checkpoint-path-load', default='./checkpoint/resnet18_loss_2400_wrong_norm.pth', type=Path,
+                    metavar='DIR', help='path to checkpoint file')
+parser.add_argument('--checkpoint-path-save', default='./checkpoint/checkpoint.pth', type=Path,
                     metavar='DIR', help='path to checkpoint file')
 
 
@@ -85,8 +87,8 @@ def main():
                      lars_adaptation_filter=exclude_bias_and_norm)
 
     # automatically resume from checkpoint if it exists
-    if (args.checkpoint_path).is_file():
-        ckpt = torch.load(args.checkpoint_path,
+    if (args.checkpoint_path_load).is_file():
+        ckpt = torch.load(args.checkpoint_path_load,
                           map_location='cpu')
         start_epoch = ckpt['epoch']
         model.load_state_dict(ckpt['model'])
@@ -156,11 +158,11 @@ def main():
             # save checkpoint
             state = dict(epoch=epoch + 1, model=model.state_dict(),
                          optimizer=optimizer.state_dict())
-            torch.save(state, args.checkpoint_path)
+            torch.save(state, args.checkpoint_path_save)
     if args.rank == 0:
         # save final model
         torch.save(model.backbone.state_dict(),
-                   args.checkpoint_path)
+                   args.checkpoint_path_save)
     # writer.close()
 
 
@@ -311,12 +313,12 @@ class Transform:
     def __init__(self):
         self.transform = A.Compose([
             A.Resize(128, 128, p=1),
-            A.RandomScale(scale_limit=(0.75, 1.5), p=0.4),
+            A.RandomScale(scale_limit=(0.75, 1.5), p=1),
             A.PadIfNeeded(min_height=128, min_width=128, p=1),
-            A.RandomCrop(128, 128, p=1),
-            A.RandomBrightnessContrast(p=0.3),
-            A.Blur(p=0.3),
-            A.Sharpen(p=0.3),
+            A.CenterCrop(128, 128, p=1),
+            # A.RandomBrightnessContrast(p=0.3),
+            # A.Blur(p=0.3),
+            # A.Sharpen(p=0.3),
             A.Normalize(mean=(0.28, 0.28, 0.28),
                         std=(0.031, 0.031, 0.031),
                         max_pixel_value=1.0, p=1),
@@ -324,17 +326,20 @@ class Transform:
         ])
         self.transform_prime = A.Compose([
             A.Resize(128, 128, p=1),
-            A.RandomScale(scale_limit=(0.75, 1.5), p=0.4),
+            A.RandomScale(scale_limit=(0.75, 1.5), p=1),
             A.PadIfNeeded(min_height=128, min_width=128, p=1),
-            A.RandomCrop(128, 128, p=1),
-            A.RandomBrightnessContrast(p=0.3),
-            A.Blur(p=0.3),
-            A.Sharpen(p=0.3),
+            A.CenterCrop(128, 128, p=1),
+            # A.RandomBrightnessContrast(p=0.3),
+            # A.Blur(p=0.3),
+            # A.Sharpen(p=0.3),
             A.Normalize(mean=(0.28, 0.28, 0.28),
                         std=(0.031, 0.031, 0.031),
                         max_pixel_value=1.0, p=1),
             ToTensorV2(always_apply=True)
         ])
+
+        # elastic deformation
+        # local brightness and contrast changes
 
     def __call__(self, x):
         image = np.float32(np.array(x)/255.0)
