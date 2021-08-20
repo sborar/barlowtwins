@@ -110,7 +110,7 @@ def main():
     std_x = []
     std_y = []
     std_z = []
-    for epoch in range(start_epoch, start_epoch+args.epochs):
+    for epoch in range(start_epoch, start_epoch+50):
         print('epoch', epoch)
         # sampler.set_epoch(epoch)
         for step, ((y1, y2), _) in enumerate(loader, start=epoch * len(loader)):
