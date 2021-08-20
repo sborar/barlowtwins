@@ -34,7 +34,7 @@ parser.add_argument('--data', default='train_dataset/img', type=Path, metavar='D
                     help='path to dataset')
 parser.add_argument('--workers', default=8, type=int, metavar='N',
                     help='number of data loader workers')
-parser.add_argument('--epochs', default=50, type=int, metavar='N',
+parser.add_argument('--epochs', default=1000, type=int, metavar='N',
                     help='number of total epochs to run')
 parser.add_argument('--batch-size', default=256, type=int, metavar='N',
                     help='mini-batch size')
@@ -110,7 +110,7 @@ def main():
     std_x = []
     std_y = []
     std_z = []
-    for epoch in range(start_epoch, args.epochs):
+    for epoch in range(start_epoch, start_epoch+args.epochs):
         print('epoch', epoch)
         # sampler.set_epoch(epoch)
         for step, ((y1, y2), _) in enumerate(loader, start=epoch * len(loader)):
