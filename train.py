@@ -53,7 +53,7 @@ parser.add_argument('--print-freq', default=100, type=int, metavar='N',
                     help='print frequency')
 parser.add_argument('--pretrained', default=False, type=bool, metavar='N',
                     help='pretrain with imagenet')
-parser.add_argument('--checkpoint-path-load', default='./checkpoint/checkpoint.pth', type=Path,
+parser.add_argument('--checkpoint-path-load', default=None, type=Path,
                     metavar='DIR', help='path to checkpoint file to load from')
 parser.add_argument('--checkpoint-path-save', default='./checkpoint/checkpoint.pth', type=Path,
                     metavar='DIR', help='path to checkpoint file to save to')
@@ -119,7 +119,7 @@ def main():
     std_x = []
     std_y = []
     std_z = []
-    for epoch in range(start_epoch, start_epoch+50):
+    for epoch in range(start_epoch, start_epoch+args.epochs):
         print('epoch', epoch)
         # sampler.set_epoch(epoch)
         for step, ((y1, y2), _) in enumerate(loader, start=epoch * len(loader)):
