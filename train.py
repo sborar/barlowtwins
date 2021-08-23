@@ -25,6 +25,7 @@ import wandb
 import numpy as np
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
+import matplotlib.pyplot as plt
 
 # from unet import UNet
 
@@ -61,6 +62,14 @@ parser.add_argument('--checkpoint-path-save', default='./checkpoint/checkpoint.p
 wandb.login(key='ed94033c9c3bebedd51d8c7e1daf4c6eafe44e09')
 wandb.init(project='barlow-twins', entity='sborar')
 config = wandb.config
+
+
+def save_images(y1):
+
+    org = y1[0].permute(1, 2, 0).numpy()
+    norm = (org - np.min(org))/(np.max(org) - np.min(org))
+    plt.imsave('y1.png', norm)
+
 
 
 def main():
@@ -133,6 +142,7 @@ def main():
 
             # with torch.cuda.amp.autocast():
             # print('y',y1)
+            # save_images(y1)
             loss = model.forward(y1, y2)
 
             loss.backward()
@@ -319,7 +329,7 @@ class Transform:
             # A.CenterCrop(128, 128, p=1),
             # A.RandomBrightnessContrast(p=1),
             # A.Blur(p=1),
-            A.Sharpen(p=1),
+            # A.Sharpen(p=1),
             A.Normalize(mean=(0.28, 0.28, 0.28),
                         std=(0.031, 0.031, 0.031),
                         max_pixel_value=1.0, p=1),
@@ -327,11 +337,11 @@ class Transform:
         ])
         self.transform_prime = A.Compose([
             A.Resize(128, 128, p=1),
-            # A.RandomScale(scale_limit=(0.75, 1.5), p=1),
-            # A.PadIfNeeded(min_height=128, min_width=128, p=1),
-            # A.CenterCrop(128, 128, p=1),
+            A.RandomScale(scale_limit=(0.75, 1.5), p=1),
+            A.PadIfNeeded(min_height=128, min_width=128, p=1),
+            A.CenterCrop(128, 128, p=1),
             # A.RandomBrightnessContrast(p=1),
-            # A.Blur(p=1),
+            A.Blur(p=1),
             # A.Sharpen(p=0.3),
             A.Normalize(mean=(0.28, 0.28, 0.28),
                         std=(0.031, 0.031, 0.031),
