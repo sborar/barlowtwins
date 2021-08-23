@@ -96,7 +96,7 @@ def main():
                      lars_adaptation_filter=exclude_bias_and_norm)
 
     # automatically resume from checkpoint if it exists
-    if (args.checkpoint_path_load).is_file():
+    if args.checkpoint_path_load and (args.checkpoint_path_load).is_file():
         ckpt = torch.load(args.checkpoint_path_load,
                           map_location='cpu')
         start_epoch = ckpt['epoch']
