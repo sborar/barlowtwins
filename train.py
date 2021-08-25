@@ -26,6 +26,7 @@ import numpy as np
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
 import matplotlib.pyplot as plt
+import cv2
 
 # from unet import UNet
 
@@ -329,8 +330,9 @@ class Transform:
             # A.CenterCrop(128, 128, p=1),
             # A.RandomBrightnessContrast(p=1),
             # A.Blur(p=0.5),
-            A.Cutout(p=1),
+            # A.Cutout(p=1),
             # A.Sharpen(p=1),
+            A.ElasticTransform(p=1,alpha_affine=4, border_mode=cv2.BORDER_CONSTANT),
             A.Normalize(mean=(0.28, 0.28, 0.28),
                         std=(0.031, 0.031, 0.031),
                         max_pixel_value=1.0, p=1),
