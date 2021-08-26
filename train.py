@@ -59,18 +59,15 @@ parser.add_argument('--checkpoint-path-load', default=None, type=Path,
 parser.add_argument('--checkpoint-path-save', default='./checkpoint/checkpoint.pth', type=Path,
                     metavar='DIR', help='path to checkpoint file to save to')
 
-
 wandb.login(key='ed94033c9c3bebedd51d8c7e1daf4c6eafe44e09')
 wandb.init(project='barlow-twins', entity='sborar')
 config = wandb.config
 
 
 def save_images(y1):
-
     org = y1[0].permute(1, 2, 0).numpy()
-    norm = (org - np.min(org))/(np.max(org) - np.min(org))
+    norm = (org - np.min(org)) / (np.max(org) - np.min(org))
     plt.imsave('y1.png', norm)
-
 
 
 def main():
@@ -120,7 +117,7 @@ def main():
     std_x = []
     std_y = []
     std_z = []
-    for epoch in range(start_epoch, start_epoch+args.epochs):
+    for epoch in range(start_epoch, start_epoch + args.epochs):
         print('epoch', epoch)
         # sampler.set_epoch(epoch)
         for step, ((y1, y2), _) in enumerate(loader, start=epoch * len(loader)):
@@ -325,14 +322,13 @@ class Transform:
     def __init__(self):
         self.transform = A.Compose([
             A.Resize(128, 128, p=1),
-            # A.RandomScale(scale_limit=(0.75, 1.5), p=0.5),
-            # A.PadIfNeeded(min_height=128, min_width=128, p=1),
-            # A.CenterCrop(128, 128, p=1),
-            # A.RandomBrightnessContrast(brightness_limit=(-0.3,0.3), contrast_limit=(-0.3,0.3),p=1),
-            # A.Blur(p=0.5),
-            # A.Sharpen(p=1),
-            # A.Cutout(p=1),
-            A.ElasticTransform(p=1, alpha_affine=10, border_mode=cv2.BORDER_CONSTANT),
+            A.RandomScale(scale_limit=(0.75, 1.5), p=0.5),
+            A.PadIfNeeded(min_height=128, min_width=128, p=1),
+            A.CenterCrop(128, 128, p=1),
+            A.RandomBrightnessContrast(brightness_limit=(-0.3, 0.3), contrast_limit=(-0.3, 0.3), p=0.5),
+            A.Blur(p=0.5),
+            A.Cutout(p=0.5),
+            A.ElasticTransform(p=0.5, alpha_affine=10, border_mode=cv2.BORDER_CONSTANT),
             A.Normalize(mean=(0.28, 0.28, 0.28),
                         std=(0.031, 0.031, 0.031),
                         max_pixel_value=1.0, p=1),
@@ -340,13 +336,13 @@ class Transform:
         ])
         self.transform_prime = A.Compose([
             A.Resize(128, 128, p=1),
-            # A.RandomScale(scale_limit=(0.75, 1.5), p=0.5),
-            # A.PadIfNeeded(min_height=128, min_width=128, p=1),
-            # A.CenterCrop(128, 128, p=1),
-            # A.RandomBrightnessContrast(brightness_limit=(-0.3,0.3), contrast_limit=(-0.3,0.3),p=1),
-            # A.Blur(p=0.5),
-            # A.Sharpen(p=0.3),
-            # A.Cutout(p=1), 
+            A.RandomScale(scale_limit=(0.75, 1.5), p=0.5),
+            A.PadIfNeeded(min_height=128, min_width=128, p=1),
+            A.CenterCrop(128, 128, p=1),
+            A.RandomBrightnessContrast(brightness_limit=(-0.3, 0.3), contrast_limit=(-0.3, 0.3), p=0.5),
+            A.Blur(p=0.5),
+            A.Cutout(p=0.5),
+            A.ElasticTransform(p=0.5, alpha_affine=10, border_mode=cv2.BORDER_CONSTANT),
             A.Normalize(mean=(0.28, 0.28, 0.28),
                         std=(0.031, 0.031, 0.031),
                         max_pixel_value=1.0, p=1),
@@ -357,7 +353,7 @@ class Transform:
         # local brightness and contrast changes
 
     def __call__(self, x):
-        image = np.float32(np.array(x)/255.0)
+        image = np.float32(np.array(x) / 255.0)
         y1 = self.transform(image=image)['image']
         y2 = self.transform_prime(image=image)['image']
         return y1, y2
